@@ -864,15 +864,12 @@ handle_common_event(_Type, Msg, StateName, #state{negotiated_version = Version} 
 handle_call({application_data, _Data}, _, _, _, _) ->
     %% In renegotiation priorities handshake, send data when handshake is finished
     {keep_state_and_data, [postpone]};
-handle_call({close, {Pid, Timeout}}, From, StateName, State0, Connection) when is_pid(Pid) ->
+handle_call({close, {Pid, _Timeout}}, From, _StateName, State0, _Connection) when is_pid(Pid) ->
     %% terminate will send close alert to peer
     State = State0#state{downgrade = {Pid, From}},
-    Connection:terminate(downgrade, StateName, State),
-    %% User downgrades connection
-    %% When downgrading an TLS connection to a transport connection
-    %% we must recive the close alert from the peer before releasing the 
-    %% transport socket.
-    {next_state, downgrade, State#state{terminated = true}, [{timeout, Timeout, downgrade}]};
+    %% Connection:terminate(downgrade, StateName, State),
+    Alert = ?ALERT_REC(?WARNING, ?CLOSE_NOTIFY),
+    {next_state, downgrade, State#state{terminated = true}, [{next_event, internal, Alert}]};
 handle_call({close, _} = Close, From, StateName, State, Connection) ->
     %% Run terminate before returning so that the reuseaddr
     %% inet-option works properly
