@@ -713,6 +713,9 @@ handle_sync_event({start, Timeout}, StartFrom, StateName,  #state{role = Role, s
 	    {stop, normal, {error, Error}, State0}
     end;	
 
+handle_sync_event({close, {_Pid, _Timeout}} = Close, _, _StateName, #state{protocol_cb = Connection} = State) ->
+    Result = Connection:terminate(Close, downgrade, State),
+    {stop, normal, Result, State#state{terminated = true}};
 handle_sync_event({close, _} = Close, _, StateName, #state{protocol_cb = Connection} = State) ->
     %% Run terminate before returning so that the reuseaddr
     %% inet-option and possible downgrade will work as intended.
