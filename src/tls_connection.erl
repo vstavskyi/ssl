@@ -980,26 +980,9 @@ invalidate_session(server, _, Port, Session) ->
     ssl_manager:invalidate_session(Port, Session).
 
 %% User downgrades connection
-%% When downgrading an TLS connection to a transport connection
-%% we must recive the close message before releasing the 
-%% transport socket.
-close({close, {Pid, Timeout}}, Socket, Transport, ConnectionStates, Check) when is_pid(Pid) -> 
-    ssl_socket:setopts(Transport, Socket, [{active, false}, {packet, ssl_tls}]),
-    case Transport:recv(Socket, 0, Timeout) of
-	{ok, {ssl_tls, Socket, ?ALERT, Version,  Fragment}} ->
-	    case tls_record:decode_cipher_text(#ssl_tls{type = ?ALERT,
-							version = Version,
-							fragment = Fragment
-						       }, ConnectionStates, Check) of
-		{#ssl_tls{fragment = Plain}, _} ->
-		    [Alert| _] = decode_alerts(Plain),
-		    downgrade(Alert, Transport, Socket, Pid)
-	    end;
-	{error, timeout} ->
-	    {error, timeout};
-	_ ->
-	    {error, no_tls_close}
-    end;
+close({close, {Pid, _Timeout}}, Socket, Transport, _ConnectionStates, _Check) when is_pid(Pid) -> 
+    Alert =  ?ALERT_REC(?FATAL, ?CLOSE_NOTIFY),
+    downgrade(Alert, Transport, Socket, Pid);		    
 %% User closes or recursive call!
 close({close, Timeout}, Socket, Transport = gen_tcp, _,_) ->
     ssl_socket:setopts(Transport, Socket, [{active, false}]),
