@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2007-2017. All Rights Reserved.
+%% Copyright Ericsson AB 2007-2015. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@
 -define(ALL_SUPPORTED_VERSIONS, ['tlsv1.2', 'tlsv1.1', tlsv1]).
 -define(MIN_SUPPORTED_VERSIONS, ['tlsv1.1', tlsv1]).
 -define(ALL_DATAGRAM_SUPPORTED_VERSIONS, ['dtlsv1.2', dtlsv1]).
--define(MIN_DATAGRAM_SUPPORTED_VERSIONS, [dtlsv1]).
+-define(MIN_DATAGRAM_SUPPORTED_VERSIONS, ['dtlsv1.2', dtlsv1]).
 
 -define('24H_in_msec', 86400000).
 -define('24H_in_sec', 86400).
@@ -93,16 +93,16 @@
 	  validate_extensions_fun, 
 	  depth                :: integer(),
 	  certfile             :: binary(),
-	  cert                 :: public_key:der_encoded() | secret_printout() | 'undefined',
+	  cert                 :: public_key:der_encoded() | secret_printout(),
 	  keyfile              :: binary(),
-	  key	               :: {'RSAPrivateKey' | 'DSAPrivateKey' | 'ECPrivateKey' | 'PrivateKeyInfo', public_key:der_encoded()} | secret_printout() | 'undefined',
-	  password	       :: string() | secret_printout() | 'undefined',
-	  cacerts              :: [public_key:der_encoded()] | secret_printout() | 'undefined',
+	  key	               :: {'RSAPrivateKey' | 'DSAPrivateKey' | 'ECPrivateKey' | 'PrivateKeyInfo', public_key:der_encoded()} | secret_printout(),
+	  password	       :: string() | secret_printout(),
+	  cacerts              :: [public_key:der_encoded()] | secret_printout(),
 	  cacertfile           :: binary(),
 	  dh                   :: public_key:der_encoded() | secret_printout(),
-	  dhfile               :: binary() | secret_printout() | 'undefined',
+	  dhfile               :: binary() | secret_printout(),
 	  user_lookup_fun,  % server option, fun to lookup the user
-	  psk_identity         :: binary() | secret_printout() | 'undefined',
+	  psk_identity         :: binary() | secret_printout() ,
 	  srp_identity,  % client option {User, Password}
 	  ciphers,    % 
 	  %% Local policy for the server if it want's to reuse the session
@@ -118,7 +118,7 @@
 	  %% undefined if not hibernating, or number of ms of
 	  %% inactivity after which ssl_connection will go into
 	  %% hibernation
-	  hibernate_after      :: timeout(),
+	  hibernate_after      :: boolean(),
 	  %% This option should only be set to true by inet_tls_dist
 	  erl_dist = false     :: boolean(),
           alpn_advertised_protocols = undefined :: [binary()] | undefined ,
@@ -133,17 +133,10 @@
 	  %% the client?
 	  honor_cipher_order = false :: boolean(),
 	  padding_check = true       :: boolean(),
-	  %%Should we use 1/n-1 or 0/n splitting to mitigate BEAST, or disable
-	  %%mitigation entirely?
-	  beast_mitigation = one_n_minus_one :: one_n_minus_one | zero_n | disabled,
 	  fallback = false           :: boolean(),
 	  crl_check                  :: boolean() | peer | best_effort, 
 	  crl_cache,
-	  signature_algs,
-	  eccs,
-	  honor_ecc_order            :: boolean(),
-	  v2_hello_compatible        :: boolean(),
-          max_handshake_size         :: integer()
+	  signature_algs
 	  }).
 
 -record(socket_options,
@@ -157,8 +150,7 @@
 
 -record(config, {ssl,               %% SSL parameters
 		 inet_user,         %% User set inet options
-		 emulated,          %% Emulated option list or "inherit_tracker" pid
-		 udp_handler,
+		 emulated,          %% Emulated option list or "inherit_tracker" pid 
 		 inet_ssl,          %% inet options for internal ssl socket
 		 transport_info,                 %% Callback info
 		 connection_cb

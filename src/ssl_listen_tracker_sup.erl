@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %% 
-%% Copyright Ericsson AB 2014-2016. All Rights Reserved.
+%% Copyright Ericsson AB 2014-2014. All Rights Reserved.
 %% 
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -57,10 +57,10 @@ init(_O) ->
     MaxT = 3600,
    
     Name = undefined, % As simple_one_for_one is used.
-    StartFunc = {tls_socket, start_link, []},
+    StartFunc = {ssl_socket, start_link, []},
     Restart = temporary, % E.g. should not be restarted
     Shutdown = 4000,
-    Modules = [tls_socket],
+    Modules = [ssl_socket],
     Type = worker,
     
     ChildSpec = {Name, StartFunc, Restart, Shutdown, Type, Modules},

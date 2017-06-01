@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2007-2017. All Rights Reserved.
+%% Copyright Ericsson AB 2007-2015. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -31,17 +31,8 @@
 
 -export([master_secret/4, finished/5, certificate_verify/3, mac_hash/7,
 	 setup_keys/8, suites/1, prf/5,
-	 ecc_curves/1, ecc_curves/2, oid_to_enum/1, enum_to_oid/1, 
+	 ecc_curves/1, oid_to_enum/1, enum_to_oid/1, 
 	 default_signature_algs/1, signature_algs/2]).
-
--type named_curve() :: sect571r1 | sect571k1 | secp521r1 | brainpoolP512r1 |
-                       sect409k1 | sect409r1 | brainpoolP384r1 | secp384r1 |
-                       sect283k1 | sect283r1 | brainpoolP256r1 | secp256k1 | secp256r1 |
-                       sect239k1 | sect233k1 | sect233r1 | secp224k1 | secp224r1 |
-                       sect193r1 | sect193r2 | secp192k1 | secp192r1 | sect163k1 |
-                       sect163r1 | sect163r2 | secp160k1 | secp160r1 | secp160r2.
--type curves() :: [named_curve()].
--export_type([curves/0, named_curve/0]).
 
 %%====================================================================
 %% Internal application API
@@ -204,6 +195,14 @@ suites(Minor) when Minor == 1; Minor == 2 ->
       ?TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,
       ?TLS_RSA_WITH_AES_256_CBC_SHA,
 
+      ?TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
+      ?TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+
       ?TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
       ?TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
       ?TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
@@ -211,14 +210,8 @@ suites(Minor) when Minor == 1; Minor == 2 ->
       ?TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,
       ?TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,
       ?TLS_RSA_WITH_AES_128_CBC_SHA,
-
-      ?TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
-      ?TLS_RSA_WITH_3DES_EDE_CBC_SHA
+      ?TLS_DHE_RSA_WITH_DES_CBC_SHA,
+      ?TLS_RSA_WITH_DES_CBC_SHA
     ];
 suites(3) ->
     [
@@ -307,7 +300,9 @@ default_signature_algs({3, 3} = Version) ->
 	       %% SHA
 	       {sha, ecdsa},
 	       {sha, rsa},
-	       {sha, dsa}],
+	       {sha, dsa},
+	       %% MD5
+	       {md5, rsa}],
     signature_algs(Version, Default);
 default_signature_algs(_) ->
     undefined.
@@ -408,20 +403,13 @@ is_pair(Hash, rsa, Hashs) ->
     lists:member(Hash, AtLeastMd5).
 
 %% list ECC curves in prefered order
--spec ecc_curves(1..3 | all) -> [named_curve()].
-ecc_curves(all) ->
-    [sect571r1,sect571k1,secp521r1,brainpoolP512r1,
-     sect409k1,sect409r1,brainpoolP384r1,secp384r1,
-     sect283k1,sect283r1,brainpoolP256r1,secp256k1,secp256r1,
-     sect239k1,sect233k1,sect233r1,secp224k1,secp224r1,
-     sect193r1,sect193r2,secp192k1,secp192r1,sect163k1,
-     sect163r1,sect163r2,secp160k1,secp160r1,secp160r2];
-ecc_curves(Minor) ->
-    TLSCurves = ecc_curves(all),
-    ecc_curves(Minor, TLSCurves).
-
--spec ecc_curves(1..3, [named_curve()]) -> [named_curve()].
-ecc_curves(_Minor, TLSCurves) ->
+ecc_curves(_Minor) ->
+    TLSCurves = [sect571r1,sect571k1,secp521r1,brainpoolP512r1,
+		 sect409k1,sect409r1,brainpoolP384r1,secp384r1,
+		 sect283k1,sect283r1,brainpoolP256r1,secp256k1,secp256r1,
+		 sect239k1,sect233k1,sect233r1,secp224k1,secp224r1,
+		 sect193r1,sect193r2,secp192k1,secp192r1,sect163k1,
+		 sect163r1,sect163r2,secp160k1,secp160r1,secp160r2],
     CryptoCurves = crypto:ec_curves(),
     lists:foldr(fun(Curve, Curves) ->
 			case proplists:get_bool(Curve, CryptoCurves) of
@@ -429,7 +417,6 @@ ecc_curves(_Minor, TLSCurves) ->
 			    false -> Curves
 			end
 		end, [], TLSCurves).
-
 
 %% ECC curves from draft-ietf-tls-ecc-12.txt (Oct. 17, 2005)
 oid_to_enum(?sect163k1) -> 1;

@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2013-2017. All Rights Reserved.
+%% Copyright Ericsson AB 2013-2014. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -21,24 +21,15 @@
 
 -include("ssl_cipher.hrl").
 
--export([suites/1, all_suites/1, mac_hash/7, ecc_curves/1, 
-         corresponding_tls_version/1, corresponding_dtls_version/1]).
+-export([suites/1, mac_hash/7, ecc_curves/1, corresponding_tls_version/1]).
 
 -spec suites(Minor:: 253|255) -> [ssl_cipher:cipher_suite()].
 
 suites(Minor) ->
-    lists:filter(fun(Cipher) -> 
-                         is_acceptable_cipher(ssl_cipher:suite_definition(Cipher)) 
-                 end,
-                 tls_v1:suites(corresponding_minor_tls_version(Minor))).
-all_suites(Version) ->
-    lists:filter(fun(Cipher) -> 
-                         is_acceptable_cipher(ssl_cipher:suite_definition(Cipher)) 
-                 end,
-                 ssl_cipher:all_suites(corresponding_tls_version(Version))).
+   tls_v1:suites(corresponding_minor_tls_version(Minor)).
 
 mac_hash(Version, MacAlg, MacSecret, SeqNo, Type, Length, Fragment) ->
-    tls_v1:mac_hash(MacAlg, MacSecret, SeqNo, Type, Version,
+    tls_v1:mac_hash(MacAlg, MacSecret, SeqNo, Type, corresponding_tls_version(Version),
 		    Length, Fragment).
 
 ecc_curves({_Major, Minor}) ->
@@ -51,13 +42,3 @@ corresponding_minor_tls_version(255) ->
     2;
 corresponding_minor_tls_version(253) ->
     3.
-
-corresponding_dtls_version({3, Minor}) -> 
-    {254, corresponding_minor_dtls_version(Minor)}.
-
-corresponding_minor_dtls_version(2) ->
-    255;
-corresponding_minor_dtls_version(3) ->
-    253.
-is_acceptable_cipher(Suite) ->
-    not ssl_cipher:is_stream_ciphersuite(Suite).

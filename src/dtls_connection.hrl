@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2013-2016. All Rights Reserved.
+%% Copyright Ericsson AB 2013-2014. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -29,14 +29,19 @@
 -include("ssl_connection.hrl").
 
 -record(protocol_buffers, {
-          dtls_record_buffer = <<>>,      %% Buffer of incomplete records
-	  dtls_handshake_next_seq = 0,
-	  dtls_flight_last,
-	  dtls_handshake_next_fragments = [], %% Fragments of the next handshake message
-	  dtls_handshake_later_fragments = [], %% Fragments of handsake messages come after the one in next buffer
-	  dtls_cipher_texts = []         %%:: [binary()],
+	  dtls_packets = [],              %%::[binary()],  % Not yet handled decode ssl/tls packets.
+          dtls_record_buffer = <<>>,      %%:: binary(),   % Buffer of incomplete records
+          dtls_handshake_buffer = <<>>,   %%:: binary(),   % Buffer of incomplete handshakes
+	  dtls_cipher_texts = [],         %%:: [binary()],
+	  dtls_cipher_texts_next          %%:: [binary()]  % Received for Epoch not yet active
 	 }).
 
--define(INITIAL_RETRANSMIT_TIMEOUT, 1000). %1 sec
+-record(flight, {
+	  last_retransmit,
+	  last_read_seq,
+	  msl_timer,
+	  state,
+	  buffer        % buffer of not yet ACKed TLS records
+	 }).
 
 -endif. % -ifdef(dtls_connection).

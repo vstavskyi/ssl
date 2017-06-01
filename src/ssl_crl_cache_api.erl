@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2015-2016. All Rights Reserved.
+%% Copyright Ericsson AB 2015-2015. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@
 
 -include_lib("public_key/include/public_key.hrl"). 
 
--type db_handle() :: term().
--type issuer_name() :: {rdnSequence, [#'AttributeTypeAndValue'{}]}.
+-type db_handle() :: term(). 
 
--callback lookup(#'DistributionPoint'{}, issuer_name(), db_handle()) -> not_available | [public_key:der_encoded()].
--callback select(issuer_name(), db_handle()) ->  [public_key:der_encoded()].
+-callback lookup(#'DistributionPoint'{}, db_handle()) -> not_available | [public_key:der_encoded()].
+-callback select(term(), db_handle()) ->  [public_key:der_encoded()].
 -callback fresh_crl(#'DistributionPoint'{}, public_key:der_encoded()) -> public_key:der_encoded().

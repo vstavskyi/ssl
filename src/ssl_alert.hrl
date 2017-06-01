@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %% 
-%% Copyright Ericsson AB 2007-2016. All Rights Reserved.
+%% Copyright Ericsson AB 2007-2015. All Rights Reserved.
 %% 
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -109,7 +109,6 @@
 -define(NO_APPLICATION_PROTOCOL, 120).
 
 -define(ALERT_REC(Level,Desc), #alert{level=Level,description=Desc,where={?FILE, ?LINE}}).
--define(ALERT_REC(Level,Desc,Reason), #alert{level=Level,description=Desc,where={?FILE, ?LINE},reason=Reason}).
 
 -define(MAX_ALERTS, 10).
 
@@ -117,7 +116,6 @@
 -record(alert, {
 	  level,
 	  description,
-          where = {?FILE, ?LINE},
-          reason
+	  where = {?FILE, ?LINE}
 	 }).
 -endif. % -ifdef(ssl_alert).

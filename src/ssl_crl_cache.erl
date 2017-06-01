@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 2015-2016. All Rights Reserved.
+%% Copyright Ericsson AB 2015-2015. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 
 -behaviour(ssl_crl_cache_api).
 
--export([lookup/3, select/2, fresh_crl/2]).
+-export([lookup/2, select/2, fresh_crl/2]).
 -export([insert/1, insert/2, delete/1]).
 
 %%====================================================================
@@ -36,10 +36,9 @@
 %%====================================================================
 
 lookup(#'DistributionPoint'{distributionPoint = {fullName, Names}},
-       _Issuer,
        CRLDbInfo) ->
     get_crls(Names, CRLDbInfo);
-lookup(_,_,_) ->
+lookup(_,_) ->
     not_available.
 
 select(Issuer, {{_Cache, Mapping},_}) ->
